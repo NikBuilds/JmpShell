@@ -65,7 +65,7 @@ Command split_command(char *line)
 
     while (token != NULL) { // Loops trough the tokens
         char **temp = realloc(cmd_struct.command_line, 
-                             (cmd_struct.count + 1) * sizeof(char*));
+                             (cmd_struct.count + 2) * sizeof(char*)); // +2 because need space for NULL
 
         if(temp == NULL) {
             perror("Realloc failed");
@@ -94,6 +94,7 @@ Command split_command(char *line)
 
 void free_command(Command *cmd) 
 {
+    printf("\n");
     for (int i = 0; i < cmd->count; i++) {
         free(cmd->command_line[i]);
     }
@@ -205,6 +206,16 @@ int main() {
             free(line);
             continue;
         }
+
+
+        // ----- Test -----
+        for(int i = 0; i < cmd.count; i++) {
+            printf("%s\n", cmd.command_line[i]);
+
+        }
+        printf("%s\n", cmd.command_line[cmd.count] == NULL ? "NULL" : "NOT NULL!");
+        printf("\n");
+
 
         // Create child process
         int status;
