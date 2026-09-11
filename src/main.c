@@ -46,6 +46,8 @@ char* read_line()
     return line;
 }
 
+
+
 typedef struct {
     char **command_line;
     int count;
@@ -59,7 +61,7 @@ Command split_command(char *line)
     cmd_struct.count = 0;
     char *saveptr;          // Pos for token
     
-    char *token = strtok_r(line, " ", &saveptr); // Splits string unsing " " as delimiter
+    char *token = strtok_r(line, " ", &saveptr); // Splits string into tokens unsing " " as delimiter
 
     while (token != NULL) { // Loops trough the tokens
         char **temp = realloc(cmd_struct.command_line, 
@@ -71,7 +73,6 @@ Command split_command(char *line)
         }
 
         cmd_struct.command_line = temp;
-        cmd_struct.command_line[cmd_struct.count] = NULL; // execvp() needs pointer to NULL at the end of the cmd
 
         // Speicher für das Wort selbst reservieren
         cmd_struct.command_line[cmd_struct.count] = malloc(strlen(token) + 1); // + 1 for Nullbyte '\0'
@@ -83,6 +84,7 @@ Command split_command(char *line)
         // Copy token into command_line
         strcpy(cmd_struct.command_line[cmd_struct.count], token);
         cmd_struct.count++;
+        cmd_struct.command_line[cmd_struct.count] = NULL; // execvp() needs a NULL terminated array to know when the arguments end
 
         token = strtok_r(NULL, " ", &saveptr);
     }
@@ -97,6 +99,8 @@ void free_command(Command *cmd)
     }
     free(cmd->command_line);
 }
+
+
 
 typedef struct {
     char **sub_folders;
@@ -123,10 +127,11 @@ int create_dir(Directory *subf)
     subf->root_path = malloc(strlen(cwd));
     strcpy(subf->root_path, cwd);
 
-    struct dirent *entry;
-    struct stat st;
+    struct dirent *entry;       // Struct for every entry in the folder
+    struct stat st;             // Struct to save data about the Files or folders
 
-    while ((entry = readdir(dir)) != NULL) {
+    // readdir() reads every entry in the current folder and saves the current entry trough every iteration into *entry
+    while ((entry = readdir(dir)) != NULL) { 
 
         // Skip . (Current dir) and .. (root dir)
         if (strcmp(entry->d_name, ".") == 0 ||
@@ -134,6 +139,8 @@ int create_dir(Directory *subf)
             continue;
         }
 
+        // stat() retrieves information from the operating system about the passed entry and saves this data in st
+        // S_ISDIR(st.st_mode) checks if the entry is a directory
         if (stat(entry->d_name, &st) == 0 && S_ISDIR(st.st_mode)) {
             char **temp = realloc(subf->sub_folders,  
                 (subf->count + 1) * sizeof(char*));
@@ -170,6 +177,7 @@ void free_dir(Directory *dir)
 }
 
 
+
 int main() {
     Directory dir;
     create_dir(&dir);
@@ -182,11 +190,19 @@ int main() {
         char *line = read_line();
         Command cmd = split_command(line);
 
-        if(!strcmp("exit", cmd.command_line[0])) exit(0);
+        if(!strcmp("exit", cmd.command_line[0])) {
+            free_command(&cmd);
+            printf("Goodbye jumper!\n");
+            break;
+        } 
+
         if(!strcmp("subf", cmd.command_line[0])) {
             for(int i = 0; i < dir.count; i++) {
                 printf("/%s\n", dir.sub_folders[i]);
             }
+            
+            free_command(&cmd);
+            free(line);
             continue;
         }
 
@@ -201,15 +217,17 @@ int main() {
 
         if(child_pid == 0){
             // Replace child process with the programm
+            // If success, execvp() never returns!
             execvp(cmd.command_line[0], cmd.command_line);
             
             perror("execvp fail");
-            _exit(EXIT_FAILURE);
+            _exit(EXIT_FAILURE); // Kills process instantly. Important because if the child fails, the buffe could flush etc. 
         } 
 
         waitpid(child_pid, &status, 0);
 
         free_command(&cmd);
+        free(line);
     }
 
     free_dir(&dir);
