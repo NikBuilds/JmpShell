@@ -94,7 +94,6 @@ Command split_command(char *line)
 
 void free_command(Command *cmd) 
 {
-    printf("\n");
     for (int i = 0; i < cmd->count; i++) {
         free(cmd->command_line[i]);
     }
@@ -181,9 +180,10 @@ void free_dir(Directory *dir)
 
 int main() {
     Directory dir;
-    create_dir(&dir);
         
     while(1) {
+        create_dir(&dir);
+
         printf("%s[JumpShell] ", KRED);
         printf("%s%s\n", KCYN, dir.root_path);
         printf(KCYN "<" KWHT "./" KCYN "> " RESET);
@@ -191,13 +191,15 @@ int main() {
         char *line = read_line();
         Command cmd = split_command(line);
 
-        if(!strcmp("exit", cmd.command_line[0])) {
+        if(!strcmp("exit", cmd.command_line[0])) 
+        {
             free_command(&cmd);
             printf("Goodbye jumper!\n");
             break;
         } 
 
-        if(!strcmp("subf", cmd.command_line[0])) {
+        if(!strcmp("subf", cmd.command_line[0])) 
+        {
             for(int i = 0; i < dir.count; i++) {
                 printf("/%s\n", dir.sub_folders[i]);
             }
@@ -207,14 +209,29 @@ int main() {
             continue;
         }
 
+        if (!strcmp("cd", cmd.command_line[0])) 
+        {
+            if (cmd.count < 2) {
+                fprintf(stderr, "cd: missing argument\n");
+            }
+            else if (chdir(cmd.command_line[1]) != 0) {
+                perror("cd failed!");
+            }
+
+            free_command(&cmd);
+            free(line);
+            free_dir(&dir);
+            continue;
+        }
+
 
         // ----- Test -----
-        for(int i = 0; i < cmd.count; i++) {
-            printf("%s\n", cmd.command_line[i]);
+        // for(int i = 0; i < cmd.count; i++) {
+        //    printf("%s\n", cmd.command_line[i]);
 
-        }
-        printf("%s\n", cmd.command_line[cmd.count] == NULL ? "NULL" : "NOT NULL!");
-        printf("\n");
+        // }
+        // printf("%s\n", cmd.command_line[cmd.count] == NULL ? "NULL" : "NOT NULL!");
+        //printf("\n");
 
 
         // Create child process
@@ -239,6 +256,7 @@ int main() {
 
         free_command(&cmd);
         free(line);
+        free_dir(&dir);
     }
 
     free_dir(&dir);
