@@ -201,7 +201,7 @@ int main() {
         if(!strcmp("subf", cmd.command_line[0])) 
         {
             for(int i = 0; i < dir.count; i++) {
-                printf("/%s\n", dir.sub_folders[i]);
+                printf("[%i] ./%s\n", i, dir.sub_folders[i]);
             }
             
             free_command(&cmd);
@@ -231,7 +231,7 @@ int main() {
 
         // }
         // printf("%s\n", cmd.command_line[cmd.count] == NULL ? "NULL" : "NOT NULL!");
-        //printf("\n");
+        // printf("\n");
 
 
         // Create child process
@@ -252,6 +252,7 @@ int main() {
             _exit(EXIT_FAILURE); // Kills process instantly. Important because if the child fails, the buffe could flush etc. 
         } 
 
+        // Parent wait till child is finished
         waitpid(child_pid, &status, 0);
 
         free_command(&cmd);
