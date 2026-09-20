@@ -20,24 +20,24 @@ void die(const char *s) {
 	exit(1);
 }
 
-void disableRawMode() {
+void disableRawMode(struct termios *orig_termios) {
 
 	// Setzt Terminal wieder auf orig_termios (So wie vorher) -> Um raw mode beim beenden des Programms zu verlassen
-	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &E.orig_termios) == -1)
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, orig_termios) == -1)
 		die("tcsetattr");
 }
 
-struct termios enableRawMode() 
+void enableRawMode(struct termios *orig_termios) 
 {
-    struct termios orig_termios; 
+    //struct termios orig_termios; 
 	// Schreibt akteullen Zustand (Unverändert) des terminals in orig_termios -> Einstellungen von der Standardeingabe (STDIN_FILENO) in orig_termios
-	if (tcgetattr(STDIN_FILENO, &orig_termios) == -1) die("tcgetattr");
+	if (tcgetattr(STDIN_FILENO, orig_termios) == -1) die("tcgetattr");
 
 	// atexit() wird automatisch beim beenden des Programms aufgerufen
 	//atexit(disableRawMode);		
 	
 	// Unveränderter Terminalzustand in neues termios Struct speichern
-	struct termios raw = orig_termios;
+	struct termios raw = *orig_termios;
 	
 	// Ctrl-S, Ctrl-Q und Ctrl-M deaktivieren
 	// IXON für Ctrl-S und Q kommt von <termios.h> und ist ein input flag
@@ -95,63 +95,75 @@ char shellReadKey()
 	return c; 
 }
 
-void shellProcessKeypress()
+void shellProcessKeypress(char **line)
 {
-    char *line = NULL;
     char *tmp = NULL;
     size_t size = 0, index = 0;
-    bool fin = false;
 
-    while(!fin) 
+    while(1) 
     {  
         char c = shellReadKey();
         if  (c == '\r' || c == '\n') {
             printf("ENTER\n");
-            fin = true;
+            break;
         }
 
         if(c == '\x1b')  { // 27 -> Escapesequenz
-            char seq[2];
+            printf("27\n");
+            break;
+            // char seq[2];
 
-            read(STDIN_FILENO, &seq[0], 1);
-            read(STDIN_FILENO, &seq[1], 1);
+            // read(STDIN_FILENO, &seq[0], 1);
+            // read(STDIN_FILENO, &seq[1], 1);
 
-            if (seq[0] == '[') {
-  	            switch (seq[1]) {
-                    case 'A':
-                        printf("UP\n");
-                        break;
-                    case 'B':
-                        printf("DOWN\n");
-                        break;
-                    case 'D':
-                        printf("LEFT\n");
-                        break;
-                    case 'C':
-                        printf("RIGHT\n");
-                        break;
-                    }
-                    break; // End while
-                }   
-            } else { // esle Escapesequenz
-                printf("Normal char\n");
-                if(size <= index) {
-                    size += 1;
-                    tmp = realloc(line, size); 
+            // if (seq[0] == '[') {
+  	        //     switch (seq[1]) {
+            //         case 'A':
+            //             printf("UP\n");
+            //             break;
+            //         case 'B':
+            //             printf("DOWN\n");
+            //             break;
+            //         case 'D':
+            //             printf("LEFT\n");
+            //             break;
+            //         case 'C':
+            //             printf("RIGHT\n");
+            //             break;
+            //         }
+            //         return; // End while
+            //     }   
+            } else {
+                write(STDOUT_FILENO, &c, 1);
+                if (index + 1 >= size) {
+                    size = (size == 0) ? 16 : size * 2;
+                    tmp = realloc(*line, size); 
 
                     if(!tmp) {
-                        free(line);
-                        line = NULL;
-                        fin = true;
+                        free(*line);
+                        *line = NULL;
+                        break;
                     }
-                line = tmp;
+                *line = tmp;
             }
             /* Store Chars into string. */
-            line[index++] = c;
+            (*line)[index++] = c;  // Zeichen hinzufügen 
+            (*line)[index] = '\0'; // String terminieren
         }
     }
 }
 
+void shellRefreshScreen() {
+	// 4 bedeutet es werden 4 bytes in das Terminal geschrieben
+	// \x1b ist das escape Zeichen (27 in Dezimal), die anderen 2 Bytes sind [2J
+	write(STDOUT_FILENO, "\x1b[2J", 4);
+	
+	// Positioniert den Cursor nach oben Links (erste Zeile und Spalte)
+	//		H Command = Cursor Position und nimmt 2 Argumenten an: Zeilen Number und Spalten Number
+	//					Besipiel wenn Terminal Größe 80x24 ist -> [12;40H wäre die mitte (Argumente werden mit ; getrennt)
+	//					Default ist 1, was oben links ist. Kann also Ohne argumente gesetzt werden (Zeilen und Spalten beginnen bei 1)
+	write(STDOUT_FILENO, "\x1b[H", 3);
+}
 
 // -----------------------------------------------------------------------------------------------------
 

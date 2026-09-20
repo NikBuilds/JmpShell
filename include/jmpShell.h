@@ -35,10 +35,11 @@ typedef struct {
 char* read_line();
 Command split_command(char *line);
 void free_command(Command *cmd);
-void disableRawMode();
-void enableRawMode();
+void disableRawMode(struct termios *orig_termio);
+void enableRawMode(struct termios *orig_termio);
 char shellReadKey();
-void shellProcessKeypress();
+void shellProcessKeypress(char **line);
+void shellRefreshScreen();
 
 
 

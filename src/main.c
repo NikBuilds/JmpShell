@@ -23,11 +23,21 @@ void print_headline(const char *root_path) {
 }
 
 int main() {
-    enableRawMode(); 
+    struct termios orig_termio;
+    char* line = NULL;
 
-    shellProcessKeypress();
+    Directory dir;
+    create_dir(&dir);
+    //print_headline(dir.root_path);
+
+    enableRawMode(&orig_termio); 
     
+    shellProcessKeypress(&line);
+    Command cmd = split_command(line);
 
-
+    disableRawMode(&orig_termio);
+    shellRefreshScreen();
+    
+    //printf("%s\n", line);
     return 0;
 }
