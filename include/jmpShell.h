@@ -11,6 +11,12 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
+#include <ctype.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <sys/ioctl.h> // for ioctl()m winsize struct and TIOCGWINSZ
+#include <termios.h>
+
 #define KRED  "\x1B[31m"
 #define KGRN  "\x1B[32m"
 #define KYEL  "\x1B[33m"
@@ -29,6 +35,12 @@ typedef struct {
 char* read_line();
 Command split_command(char *line);
 void free_command(Command *cmd);
+void disableRawMode();
+void enableRawMode();
+char shellReadKey();
+void shellProcessKeypress();
+
+
 
 // dir
 typedef struct {
