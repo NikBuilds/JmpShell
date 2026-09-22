@@ -98,18 +98,38 @@ char shellReadKey()
 void shellProcessKeypress(char **line)
 {
     char *tmp = NULL;
-    size_t size = 0, index = 0;
+    size_t size = 0;
+    size_t index = 0;
+
+    write(STDOUT_FILENO, "\x1b[1G", 1);
 
     while(1) 
     {  
         char c = shellReadKey();
+
+        // Enter
         if  (c == '\r' || c == '\n') {
-            printf("ENTER\n");
+            //printf("\nENTER\n");
+            write(STDOUT_FILENO, "\r\n", 2);
             break;
         }
 
+        // Backspace
+        if (c == 127)
+        {
+            if (index > 0)
+            {
+                index--;
+                (*line)[index] = '\0';
+
+                write(STDOUT_FILENO, "\b \b", 3);
+            }
+
+            continue;
+        }
+
         if(c == '\x1b')  { // 27 -> Escapesequenz
-            printf("27\n");
+            printf("27");
             break;
             // char seq[2];
 
@@ -134,7 +154,7 @@ void shellProcessKeypress(char **line)
             //         return; // End while
             //     }   
             } else {
-                write(STDOUT_FILENO, &c, 1);
+                //write(STDOUT_FILENO, &c, 1);
                 if (index + 1 >= size) {
                     size = (size == 0) ? 16 : size * 2;
                     tmp = realloc(*line, size); 
@@ -149,6 +169,8 @@ void shellProcessKeypress(char **line)
             /* Store Chars into string. */
             (*line)[index++] = c;  // Zeichen hinzufügen 
             (*line)[index] = '\0'; // String terminieren
+
+            write(STDOUT_FILENO, &c, 1);
         }
     }
 }
