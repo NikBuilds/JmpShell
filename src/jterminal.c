@@ -32,7 +32,7 @@ void disableRawMode(struct termios *orig_termios)
 void enableRawMode(struct termios *orig_termios)
 {
     // struct termios orig_termios;
-    //  Schreibt akteullen Zustand (Unverändert) des terminals in orig_termios -> Einstellungen von der Standardeingabe (STDIN_FILENO) in orig_termios
+    // Schreibt akteullen Zustand (Unverändert) des terminals in orig_termios -> Einstellungen von der Standardeingabe (STDIN_FILENO) in orig_termios
     if (tcgetattr(STDIN_FILENO, orig_termios) == -1)
         die("tcgetattr");
 
@@ -110,7 +110,7 @@ void shellProcessKeypress(char **line)
     size_t size = 0, index = 0;
     char *tmp = NULL;
 
-    write(STDOUT_FILENO, "\x1b[1G", 1);
+    write(STDOUT_FILENO, "\x1b[3G", 4);
 
     while (1)
     {
@@ -134,7 +134,7 @@ void shellProcessKeypress(char **line)
 
                 // First \b means put cursosr one char to the left
                 // Then overwrite with the space
-                // Secons \b puts curser to the left agine
+                // Secons \b puts curser to the left again
                 write(STDOUT_FILENO, "\b \b", 3);
             }
 
@@ -144,6 +144,7 @@ void shellProcessKeypress(char **line)
         if (c == '\x1b')
         { // 27 -> Escapesequenz
             printf("27");
+            fflush(stdout);
             break;
             // char seq[2];
 
@@ -170,7 +171,6 @@ void shellProcessKeypress(char **line)
         }
         else
         {
-            // write(STDOUT_FILENO, &c, 1);
             if (index + 1 >= size)
             {
                 size = (size == 0) ? 16 : size * 2;

@@ -48,7 +48,7 @@ int main()
         {
             printf("%s\r\n", cmd.command_line[i]);
         }
-        printf("%s\n", cmd.command_line[cmd.count] == NULL ? "NULL" : "NOT NULL!");
+        printf("%s\r\n", cmd.command_line[cmd.count] == NULL ? "NULL" : "NOT NULL!");
         printf("\r\n");
         // ----------------
 
@@ -65,7 +65,7 @@ int main()
             printf("Call subf!\r\n");
             for (int i = 0; i < dir.count; i++)
             {
-                printf("[%i] ./%s\n", i, dir.sub_folders[i]);
+                printf("[%i] ./%s\r\n", i, dir.sub_folders[i]);
             }
 
             free_dir(&dir);
@@ -77,11 +77,14 @@ int main()
         {
             if (cmd.count < 2)
             {
-                fprintf(stderr, "cd: missing argument\n");
+                fprintf(stderr, "cd: missing argument\r\n");
             }
             else if (chdir(cmd.command_line[1]) != 0)
             {
-                perror("cd failed!");
+                // Kein perror() da diese funktion nach stderr immer mit \n schreibt.
+                // Somit kommt kein Carriage Return und Treppeneffekt tritt ein.
+                // Deshalb wird der Fehlertest mit strerror() selbst ausgegeben.
+                fprintf(stderr, "%s: %s\r\n", cmd.command_line[1], strerror(errno));
             }
 
             free_command(&cmd);
