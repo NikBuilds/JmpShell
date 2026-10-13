@@ -17,22 +17,23 @@
 #include <sys/ioctl.h> // for ioctl()m winsize struct and TIOCGWINSZ
 #include <termios.h>
 
-#define KRED  "\x1B[31m"
-#define KGRN  "\x1B[32m"
-#define KYEL  "\x1B[33m"
-#define KBLU  "\x1B[34m"
-#define KMAG  "\x1B[35m"
-#define KCYN  "\x1B[36m"
-#define KWHT  "\x1B[37m"
+#define KRED "\x1B[31m"
+#define KGRN "\x1B[32m"
+#define KYEL "\x1B[33m"
+#define KBLU "\x1B[34m"
+#define KMAG "\x1B[35m"
+#define KCYN "\x1B[36m"
+#define KWHT "\x1B[37m"
 #define RESET "\x1B[0m"
 
 // cmd
-typedef struct {
+typedef struct
+{
     char **command_line;
     int count;
 } Command;
 
-char* read_line();
+char *read_line();
 Command split_command(char *line);
 void free_command(Command *cmd);
 void disableRawMode(struct termios *orig_termio);
@@ -41,10 +42,9 @@ char shellReadKey();
 void shellProcessKeypress(char **line);
 void shellRefreshScreen();
 
-
-
 // dir
-typedef struct {
+typedef struct
+{
     char **sub_folders;
     char *root_path;
     int count;
