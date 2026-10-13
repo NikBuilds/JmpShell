@@ -92,6 +92,29 @@ int main()
             continue;
         }
 
+        // Create child process
+        int status;
+        pid_t child_pid = fork();
+
+        if (child_pid < 0)
+        {
+            perror("fork fail");
+            exit(1);
+        }
+
+        if (child_pid == 0)
+        {
+            // Replace child process with the programm
+            // If success, execvp() never returns!
+            execvp(cmd.command_line[0], cmd.command_line);
+
+            perror("execvp fail");
+            _exit(EXIT_FAILURE); // Kills process instantly. Important because if the child fails, the buffe could flush etc.
+        }
+
+        // Parent wait till child is finished
+        waitpid(child_pid, &status, 0);
+
         // Already built in in shellProcessKeaypress but doesent hurt.
         free(line);
         line = NULL;
