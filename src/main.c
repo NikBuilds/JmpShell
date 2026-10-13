@@ -54,6 +54,7 @@ int main()
         if (!strcmp("exit", cmd.command_line[0]))
         {
             free_command(&cmd);
+            free_dir(&dir);
             printf("Goodbye jumper!\r\n");
             break;
         }
@@ -92,6 +93,7 @@ int main()
         line = NULL;
     }
 
+    free(line);
     disableRawMode(&orig_termio);
     return 0;
 }
