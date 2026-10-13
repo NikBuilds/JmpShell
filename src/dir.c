@@ -82,4 +82,5 @@ void free_dir(Directory *dir)
         free(dir->sub_folders[i]);
     }
     free(dir->sub_folders);
+    free(dir->root_path);
 }
