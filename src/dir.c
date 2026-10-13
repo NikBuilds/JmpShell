@@ -16,7 +16,11 @@ int create_dir(Directory *subf)
 
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) == NULL)
+    {
         perror("Faild to get the current directory");
+        closedir(dir);
+        return 1;
+    }
 
     subf->root_path = malloc(strlen(cwd) + 1);
 
