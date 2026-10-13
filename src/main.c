@@ -23,7 +23,8 @@ int main()
         Directory dir;
         create_dir(&dir);
 
-        printf("%s[JumpShell] %s%s%s\r\n", KRED, KCYN, dir.root_path, RESET);
+        // root_path ist NULL, wenn create_dir() fehlschlägt
+        printf("%s[JumpShell] %s%s%s\r\n", KRED, KCYN, dir.root_path ? dir.root_path : "?", RESET);
         printf("> ");
         fflush(stdout);
 
