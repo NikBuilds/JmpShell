@@ -1,5 +1,7 @@
 #include "jmpShell.h"
 
+// IDEA: rawmode vor subf und cd usw beenden damit ausgabe richtig ist.
+
 int main()
 {
     printf(KMAG
@@ -16,10 +18,10 @@ int main()
     struct termios orig_termio;
     char *line = NULL;
 
-    enableRawMode(&orig_termio);
-
     while (1)
     {
+        enableRawMode(&orig_termio);
+
         Directory dir;
         create_dir(&dir);
 
@@ -44,12 +46,12 @@ int main()
         }
 
         // ----- Test -----
-        for (int i = 0; i < cmd.count; i++)
-        {
-            printf("%s\r\n", cmd.command_line[i]);
-        }
-        printf("%s\r\n", cmd.command_line[cmd.count] == NULL ? "NULL" : "NOT NULL!");
-        printf("\r\n");
+        // for (int i = 0; i < cmd.count; i++)
+        // {
+        //     printf("%s\r\n", cmd.command_line[i]);
+        // }
+        // printf("%s\r\n", cmd.command_line[cmd.count] == NULL ? "NULL" : "NOT NULL!");
+        // printf("\r\n");
         // ----------------
 
         if (!strcmp("exit", cmd.command_line[0]))
@@ -57,6 +59,7 @@ int main()
             free_command(&cmd);
             free_dir(&dir);
             printf("Goodbye jumper!\r\n");
+            fflush(stdout);
             break;
         }
 
@@ -92,6 +95,14 @@ int main()
             continue;
         }
 
+        // Externe Programme (z. B. ls) erwarten ein normales Terminal.
+        // Im Raw Mode ist OPOST aus, dadurch wird \n nicht zu \r\n und es entsteht ein Treppeneffekt.
+        // Deshalb wird der Raw Mode für die Dauer des Programms verlassen und danach wieder aktiviert.
+        disableRawMode(&orig_termio);
+
+        // stdout leeren, damit der Kindprozess keinen gepufferten Text doppelt ausgibt
+        fflush(stdout);
+
         // Create child process
         int status;
         pid_t child_pid = fork();
@@ -99,23 +110,26 @@ int main()
         if (child_pid < 0)
         {
             perror("fork fail");
-            exit(1);
         }
-
-        if (child_pid == 0)
+        else if (child_pid == 0)
         {
             // Replace child process with the programm
             // If success, execvp() never returns!
             execvp(cmd.command_line[0], cmd.command_line);
 
-            perror("execvp fail");
-            _exit(EXIT_FAILURE); // Kills process instantly. Important because if the child fails, the buffe could flush etc.
+            perror(cmd.command_line[0]);
+            _exit(EXIT_FAILURE); // Kills process instantly. Important because if the child fails, the buffer could flush etc.
+        }
+        else
+        {
+            // Parent wait till child is finished
+            waitpid(child_pid, &status, 0);
         }
 
-        // Parent wait till child is finished
-        waitpid(child_pid, &status, 0);
+        free_command(&cmd);
+        free_dir(&dir);
 
-        // Already built in in shellProcessKeaypress but doesent hurt.
+        // Already builtin in shellProcessKeaypress but doesent hurt.
         free(line);
         line = NULL;
     }

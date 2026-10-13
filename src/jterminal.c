@@ -69,7 +69,7 @@ void enableRawMode(struct termios *orig_termios)
     //		- Ctrl-Z sendet SIGTSTP was ihn aussetzt (Kann jetzt als 26 byte gelesen werden)
     // IEXTEN:
     //		- Ctrl-V & Ctrl-O (Mac) durch V und O wartet Terminal bis neuer Input. (V jetzt als 22 byte und O als 15 byte)
-    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN);
+    raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
 
     // VMIN und VTIME stammen aus <termios.h>.
     // Sie sind Indizes im Feld c_cc, das für „Steuerzeichen / Control characters“ steht, ein Byte-Array, das verschiedene Terminaleinstellungen steuert.
