@@ -1,5 +1,15 @@
 # Projektanweisungen für Claude
 
+## Projektüberblick
+- JmpShell ("JumpShell"): eine eigene interaktive Shell mit Terminal im Raw Mode.
+- Sprache: C, gebaut mit `gcc` (`-Wall -Wextra`) über das `Makefile`.
+- `src/main.c`: Hauptschleife, Prompt und Built-ins (`cd`, `subf`, `exit`).
+- `src/jterminal.c`: Raw Mode, Tastatureingabe, Zeilen-Parsing.
+- `src/dir.c`: aktuelles Verzeichnis und Unterordner auslesen.
+- `include/jmpShell.h`: gemeinsamer Header (Structs, Prototypen, Farbcodes).
+- Bauen: `make` (Ausgabe `build/main`), Starten: `make run`, Aufräumen: `make clean`.
+- Tests gibt es bisher keine.
+
 ## Git-Workflow
 - Du arbeitest ausschließlich in deinem eigenen Worktree/Branch.
 - Mach kleine, in sich abgeschlossene Commits: eine logische Änderung pro Commit.
