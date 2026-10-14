@@ -143,9 +143,13 @@ void shellProcessKeypress(char **line)
 
         if (c == '\x1b')
         { // 27 -> Escapesequenz
-            // printf("27\r\n");
-            // fflush(stdout);
-            break;
+            // Sequenz (z. B. Pfeiltaste "\x1b[A") verwerfen statt die Eingabe zu beenden.
+            // Ein break würde den halb getippten Befehl sofort ausführen.
+            // read() kehrt dank VTIME nach spätestens 100 ms zurück, falls nur Esc gedrückt wurde.
+            char seq[2];
+            if (read(STDIN_FILENO, &seq[0], 1) == 1 && seq[0] == '[')
+                read(STDIN_FILENO, &seq[1], 1);
+            continue;
             // char seq[2];
 
             // read(STDIN_FILENO, &seq[0], 1);
