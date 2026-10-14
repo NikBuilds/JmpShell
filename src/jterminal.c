@@ -272,9 +272,14 @@ Command split_command(char *line)
         char **temp = realloc(cmd_struct.command_line,
                               (cmd_struct.count + 2) * sizeof(char *)); // +2 because need space for NULL
 
+        // Bei einem Fehler alles freigeben und count = 0 zurückgeben.
+        // Ein abgeschnittener Befehl (z. B. nur ein Teil der Argumente) darf nicht ausgeführt werden.
         if (temp == NULL)
         {
             perror("Realloc failed");
+            free_command(&cmd_struct);
+            cmd_struct.command_line = NULL;
+            cmd_struct.count = 0;
             break;
         }
 
@@ -285,6 +290,9 @@ Command split_command(char *line)
         if (cmd_struct.command_line[cmd_struct.count] == NULL)
         {
             perror("malloc failed");
+            free_command(&cmd_struct);
+            cmd_struct.command_line = NULL;
+            cmd_struct.count = 0;
             break;
         }
 
