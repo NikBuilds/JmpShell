@@ -132,7 +132,7 @@ int main()
         line = NULL;
     }
 
-    // free(line);
+    free(line);
     disableRawMode(&orig_termio);
     return 0;
 }
