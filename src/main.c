@@ -17,6 +17,11 @@ int main()
            "▀████▀          ▀                               \n"
            "\n" RESET);
 
+    // Ctrl-C und Ctrl-\ sollen nur das laufende Programm beenden, nicht die Shell selbst.
+    // Die Shell ignoriert die Signale, der Kindprozess setzt sie vor execvp() wieder auf Standard.
+    signal(SIGINT, SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
+
     struct termios orig_termio;
     char *line = NULL;
 
@@ -111,6 +116,10 @@ int main()
         }
         else if (child_pid == 0)
         {
+            // Signale für das Programm wieder auf Standard setzen (Shell ignoriert sie)
+            signal(SIGINT, SIG_DFL);
+            signal(SIGQUIT, SIG_DFL);
+
             // Replace child process with the programm
             // If success, execvp() never returns!
             execvp(cmd.command_line[0], cmd.command_line);

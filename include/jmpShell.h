@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <sys/ioctl.h> // for ioctl()m winsize struct and TIOCGWINSZ
 #include <termios.h>
+#include <signal.h>
 
 #define KRED "\x1B[31m"
 #define KGRN "\x1B[32m"
