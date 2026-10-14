@@ -141,6 +141,12 @@ void shellProcessKeypress(char **line)
             continue;
         }
 
+        // Übrige Steuerzeichen (z. B. Ctrl-C = 3, Ctrl-D = 4) ignorieren.
+        // Sonst landen sie unsichtbar im Befehl und werden roh ans Terminal geschrieben.
+        // Cast auf unsigned char, da iscntrl() mit negativen Werten (UTF-8 Bytes) undefiniert ist.
+        if (c != '\x1b' && iscntrl((unsigned char)c))
+            continue;
+
         if (c == '\x1b')
         { // 27 -> Escapesequenz
             // Sequenz (z. B. Pfeiltaste "\x1b[A") verwerfen statt die Eingabe zu beenden.
