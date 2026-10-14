@@ -143,31 +143,37 @@ void shellProcessKeypress(char **line)
 
         if (c == '\x1b')
         { // 27 -> Escapesequenz
-            printf("27");
-            fflush(stdout);
+            // printf("27\r\n");
+            // fflush(stdout);
             break;
             // char seq[2];
 
             // read(STDIN_FILENO, &seq[0], 1);
             // read(STDIN_FILENO, &seq[1], 1);
 
-            // if (seq[0] == '[') {
-            //     switch (seq[1]) {
-            //         case 'A':
-            //             printf("UP\n");
-            //             break;
-            //         case 'B':
-            //             printf("DOWN\n");
-            //             break;
-            //         case 'D':
-            //             printf("LEFT\n");
-            //             break;
-            //         case 'C':
-            //             printf("RIGHT\n");
-            //             break;
-            //         }
-            //         return; // End while
+            // if (seq[0] == '[')
+            // {
+            //     switch (seq[1])
+            //     {
+            //     case 'A':
+            //         printf("UP\r\n");
+            //         fflush(stdout);
+            //         break;
+            //     case 'B':
+            //         printf("DOWN\r\n");
+            //         fflush(stdout);
+            //         break;
+            //     case 'D':
+            //         printf("LEFT\r\n");
+            //         fflush(stdout);
+            //         break;
+            //     case 'C':
+            //         printf("RIGHT\r\n");
+            //         fflush(stdout);
+            //         break;
             //     }
+            //     return; // End while
+            // }
         }
         else
         {
