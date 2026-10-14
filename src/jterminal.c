@@ -9,6 +9,12 @@
 //	  (Er ist auch ähnlich konzipiert, sodass Sie Bit 5 setzen und löschen können, um zwischen Klein- und Großbuchstaben zu wechseln.)
 #define CTRL_KEY(k) ((k) & 0x1f)
 
+/** data **/
+
+// Zeigt auf den Originalzustand des Terminals, solange der Raw Mode aktiv ist.
+// Wird von die() gebraucht, um das Terminal vor dem Beenden wiederherzustellen.
+static struct termios *raw_orig_termios = NULL;
+
 /** functions **/
 
 void die(const char *s)
@@ -16,6 +22,14 @@ void die(const char *s)
     // Cleart den Screen und positinoiert die Cursor oben Links
     write(STDOUT_FILENO, "\x1b[2J", 4);
     write(STDOUT_FILENO, "\x1b[H", 3);
+
+    // Raw Mode verlassen, sonst bleibt das Terminal nach dem Beenden unbrauchbar.
+    // Direkt tcsetattr() statt disableRawMode(), da dieses bei Fehler wieder die() aufruft.
+    if (raw_orig_termios)
+    {
+        tcsetattr(STDIN_FILENO, TCSAFLUSH, raw_orig_termios);
+        raw_orig_termios = NULL;
+    }
 
     perror(s);
     exit(1);
@@ -27,6 +41,8 @@ void disableRawMode(struct termios *orig_termios)
     // Setzt Terminal wieder auf orig_termios (So wie vorher) -> Um raw mode beim beenden des Programms zu verlassen
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, orig_termios) == -1)
         die("tcsetattr");
+
+    raw_orig_termios = NULL;
 }
 
 void enableRawMode(struct termios *orig_termios)
@@ -83,6 +99,8 @@ void enableRawMode(struct termios *orig_termios)
     // Neuer Zustand auf das Terminal anwenden & error handling
     if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
         die("tcsetattr");
+
+    raw_orig_termios = orig_termios;
 }
 
 // read() ließt genau 1 char in c ein -> angegeben in argument 2.
