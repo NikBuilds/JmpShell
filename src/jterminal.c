@@ -291,3 +291,31 @@ void free_command(Command *cmd)
     }
     free(cmd->command_line);
 }
+
+// Holt die breite und höhe des Terminals
+// Mit ioctl() wird bei erfolg die referenzen mit col und row gesetzt.
+// Es wird überprüft ob ioctl fehlschlägt, also -1 und ob die gesetzen Werte ws_col 0 sind
+int getWindowSize(int *rows, int *cols)
+{
+    struct winsize ws;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1 || ws.ws_col == 0)
+    {
+        return -1;
+    }
+    else
+    {
+        *cols = ws.ws_col;
+        *rows = ws.ws_row;
+        return 0;
+    }
+}
+
+int printHeadline(const char *root_path)
+{
+    // root_path ist NULL, wenn create_dir() fehlschlägt
+    printf("%s[JumpShell] %s%s%s\r\n", KRED, KCYN, root_path ? root_path : "?", RESET);
+    printf("> ");
+    fflush(stdout);
+
+    return 0;
+}

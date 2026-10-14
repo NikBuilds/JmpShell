@@ -41,6 +41,8 @@ void enableRawMode(struct termios *orig_termio);
 char shellReadKey();
 void shellProcessKeypress(char **line);
 void shellRefreshScreen();
+int getWindowSize(int *rows, int *cols);
+int printHeadline(const char *root_path);
 
 // dir
 typedef struct

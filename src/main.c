@@ -2,6 +2,8 @@
 
 // IDEA: rawmode vor subf und cd usw beenden damit ausgabe richtig ist.
 
+int screenrows, screencols;
+
 int main()
 {
     printf(KMAG
@@ -20,15 +22,11 @@ int main()
 
     while (1)
     {
-        enableRawMode(&orig_termio);
-
         Directory dir;
         create_dir(&dir);
 
-        // root_path ist NULL, wenn create_dir() fehlschlägt
-        printf("%s[JumpShell] %s%s%s\r\n", KRED, KCYN, dir.root_path ? dir.root_path : "?", RESET);
-        printf("> ");
-        fflush(stdout);
+        printHeadline(dir.root_path);
+        enableRawMode(&orig_termio);
 
         shellProcessKeypress(&line);
         if (line == NULL || line[0] == '\0')
@@ -45,6 +43,11 @@ int main()
             continue;
         }
 
+        // Externe Programme (z. B. ls) erwarten ein normales Terminal.
+        // Im Raw Mode ist OPOST deaktiviert, dadurch wird \n nicht zu \r\n und es entsteht ein Treppeneffekt.
+        // Deshalb wird der Raw Mode für die Dauer des Programms verlassen und danach wieder aktiviert.
+        disableRawMode(&orig_termio);
+
         // ----- Test -----
         // for (int i = 0; i < cmd.count; i++)
         // {
@@ -58,17 +61,17 @@ int main()
         {
             free_command(&cmd);
             free_dir(&dir);
-            printf("Goodbye jumper!\r\n");
+            printf("Goodbye jumper!\n");
             fflush(stdout);
             break;
         }
 
         if (!strcmp("subf", cmd.command_line[0]))
         {
-            printf("Call subf!\r\n");
+            printf("Call subf!\n");
             for (int i = 0; i < dir.count; i++)
             {
-                printf("[%i] ./%s\r\n", i, dir.sub_folders[i]);
+                printf("[%i] ./%s\n", i, dir.sub_folders[i]);
             }
 
             free_dir(&dir);
@@ -80,25 +83,20 @@ int main()
         {
             if (cmd.count < 2)
             {
-                fprintf(stderr, "cd: missing argument\r\n");
+                fprintf(stderr, "cd: missing argument\n");
             }
             else if (chdir(cmd.command_line[1]) != 0)
             {
                 // Kein perror() da diese funktion nach stderr immer mit \n schreibt.
                 // Somit kommt kein Carriage Return und Treppeneffekt tritt ein.
                 // Deshalb wird der Fehlertest mit strerror() selbst ausgegeben.
-                fprintf(stderr, "%s: %s\r\n", cmd.command_line[1], strerror(errno));
+                fprintf(stderr, "%s: %s\n", cmd.command_line[1], strerror(errno));
             }
 
             free_command(&cmd);
             free_dir(&dir);
             continue;
         }
-
-        // Externe Programme (z. B. ls) erwarten ein normales Terminal.
-        // Im Raw Mode ist OPOST aus, dadurch wird \n nicht zu \r\n und es entsteht ein Treppeneffekt.
-        // Deshalb wird der Raw Mode für die Dauer des Programms verlassen und danach wieder aktiviert.
-        disableRawMode(&orig_termio);
 
         // stdout leeren, damit der Kindprozess keinen gepufferten Text doppelt ausgibt
         fflush(stdout);
@@ -134,7 +132,7 @@ int main()
         line = NULL;
     }
 
-    free(line);
+    // free(line);
     disableRawMode(&orig_termio);
     return 0;
 }
